@@ -3,6 +3,7 @@ import { Todo } from '../types/Todo';
 import { CreateTodoRequest } from '../types/CreateTodoRequest';
 import Axios from 'axios'
 import { UpdateTodoRequest } from '../types/UpdateTodoRequest';
+import dateFormat from 'dateformat'
 
 export async function getTodos(idToken: string): Promise<Todo[]> {
   console.log('Fetching todos')
@@ -11,9 +12,38 @@ export async function getTodos(idToken: string): Promise<Todo[]> {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
-    },
+    }
   })
-  console.log('Todos:', response.data)
+
+  return response.data.items
+}
+
+export async function getTodosFilterDueDate(idToken: string, dueDateRange: Date[]| undefined): Promise<Todo[]> {
+  console.log('Fetching todos')
+
+  let params: {startDate: any, endDate: any} = {
+    startDate: null,
+    endDate: null
+  };
+
+  if (dueDateRange) {  
+    params.startDate = dateFormat(dueDateRange[0], 'yyyy-mm-dd')
+
+    if (dueDateRange[1]) {
+      params.endDate = dateFormat(dueDateRange[1], 'yyyy-mm-dd')
+    }
+  }
+
+  console.log("params",params)
+
+  const response = await Axios.get(`${apiEndpoint}/todos`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    },   
+    params
+  });
+
   return response.data.items
 }
 

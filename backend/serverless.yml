@@ -1,6 +1,6 @@
 # TODO: Change the name of the org 
-app: serverless-project-app
-service: serverless-project-app
+app: serverless-capstone-
+service: serverless-capstone-
 
 plugins:
   - serverless-webpack
@@ -21,9 +21,10 @@ provider:
     apiGateway: true
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_TABLE: Todos-Capstone--todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: oresti-serverless-c4-todo-images-${self:provider.stage}
+    DUE_DATE_INDEX: DueDateIndex
+    ATTACHMENT_S3_BUCKET: oresti-capstone-imgs-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -182,6 +183,8 @@ resources:
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
+          - AttributeName: dueDate
+            AttributeType: S
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
@@ -196,6 +199,13 @@ resources:
                 KeyType: HASH
               - AttributeName: createdAt
                 KeyType: RANGE
+            Projection:
+              ProjectionType: ALL # What attributes will be copied to an index
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.DUE_DATE_INDEX}
+            KeySchema:
+              - AttributeName: dueDate
+                KeyType: HASH
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
           

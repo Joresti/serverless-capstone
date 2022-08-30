@@ -7,8 +7,12 @@ import { uuid } from 'uuidv4';
 const imageBucketName = process.env.ATTACHMENT_S3_BUCKET;
 const usersAccess = new TodosAccessService();
 
-export const  getTodosForUser = async (userId: string) => {
+export const getTodosForUser = async (userId: string) => {
     return await usersAccess.getTodosForUser(userId);
+}
+
+export const getTodosForUserFilterDueDate = async (userId: string, startDate: string, endDate: string) => {
+    return await usersAccess.getTodosForUserFilterDueDate(userId, startDate, endDate);
 }
 
 export const createTodo = async (userId: string, createTodoRequest: CreateTodoRequest) => {

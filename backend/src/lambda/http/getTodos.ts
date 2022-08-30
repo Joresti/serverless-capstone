@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { createLogger } from '../../utils/logger'
-import { getTodosForUser as getTodosForUser } from '../../businessLogic/todos'
+import { getTodosForUser, getTodosForUserFilterDueDate } from '../../businessLogic/todos'
 import { getUserId } from '../utils';
 
 const logger = createLogger('GetTodos');
@@ -15,7 +15,24 @@ export const handler = middy(
 
     try {
       const userId = getUserId(event);
-      const todos = await getTodosForUser(userId);
+
+      let todos;
+      let startDate;
+      let endDate;
+
+      if (!!event.queryStringParameters) {
+        startDate = event.queryStringParameters['startDate'];
+        endDate = event.queryStringParameters['endDate'];
+      }
+
+      console.log("startDate", startDate, endDate)
+
+      if (!!startDate) {
+        todos = await getTodosForUserFilterDueDate(userId, startDate, endDate);
+      } else {
+        todos = await getTodosForUser(userId);
+      }
+
       logger.info(`Todos fetched for user: ${userId}`, todos);
 
       return {

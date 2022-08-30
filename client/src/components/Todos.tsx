@@ -14,7 +14,8 @@ import {
   Loader
 } from 'semantic-ui-react'
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+import { Calendar } from 'primereact/calendar';
+import { createTodo, deleteTodo, getTodos, patchTodo, getTodosFilterDueDate } from '../api/todos-api'
 import Auth from '../auth/Auth'
 import { Todo } from '../types/Todo'
 
@@ -27,6 +28,7 @@ interface TodosState {
   todos: Todo[]
   newTodoName: string
   loadingTodos: boolean
+  dueDateRange?: Date[] | undefined
 }
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
@@ -89,25 +91,56 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     }
   }
 
+  async fetchTodosFilterByDate() {
+    this.setState({
+      loadingTodos: true
+    });    
+    const todos = await getTodosFilterDueDate(this.props.auth.getIdToken(), this.state.dueDateRange);
+    this.setState({
+      todos,
+      loadingTodos: false
+    });
+  }
+
+
+  async fetchTodos() {
+    const todos = await getTodos(this.props.auth.getIdToken());
+    this.setState({
+      todos,
+      loadingTodos: false
+    });
+  }
+
   async componentDidMount() {
     try {
-      const todos = await getTodos(this.props.auth.getIdToken())
-      this.setState({
-        todos,
-        loadingTodos: false
-      })
+     await this.fetchTodos();
     } catch (e: any) {
       alert(`Failed to fetch todos: ${e.message}`)
     }
+  }
+
+  setDueDateRange(e: any) {
+    console.log("onchange")
+    this.setState({dueDateRange: e.value})
+  }
+
+  setDateFilter() {
+    console.log("onhide")
+    console.log(this.state.dueDateRange)
+    this.fetchTodosFilterByDate();
   }
 
   render() {
     return (
       <div>
         <Header as="h1">TODOs</Header>
-
+        <Grid.Row>
+          <Grid.Column width={16} style={{margin: "5px"}}>
+            <label htmlFor="dueDateRange" style={{marginRight: "10px"}}>Filter Todo's Due Date</label>
+            <Calendar id="dueDateRange" onHide={() => this.setDateFilter()} value={this.state.dueDateRange}  onChange={(e: any) => this.setDueDateRange(e)} selectionMode={"range"} ></Calendar>
+          </Grid.Column>
+        </Grid.Row>
         {this.renderCreateTodoInput()}
-
         {this.renderTodos()}
       </div>
     )

@@ -29,6 +29,28 @@ export class TodosAccessService {
         return <TodoItem[]>result.Items;
     }
 
+    async getTodosForUserFilterDueDate(userId:string, startDate: string, endDate: string): Promise<TodoItem[]> {
+        let filterExpression = `dueDate <= :startDate`;
+        const expressionAttributeValues = {
+            ':userId': userId,
+            ':startDate': startDate
+        }
+
+        if (endDate) {
+            filterExpression = `dueDate BETWEEN :startDate AND :endDate`;
+            expressionAttributeValues[':endDate'] = endDate;
+        }
+
+        const result =  await this.docClient.query({
+            TableName: todosTableName,
+            KeyConditionExpression: 'userId = :userId',
+            FilterExpression: filterExpression,
+            ExpressionAttributeValues: expressionAttributeValues
+        }).promise();
+
+        return <TodoItem[]>result.Items;
+    }
+
     async createTodo(todoItem: TodoItem) {
         const result = await this.docClient.put({
             TableName: todosTableName,
